@@ -105,3 +105,72 @@ type If<C, T, F> = C extends true ? T : F;
 
 type A = If<true, 'a', 'b'>  // expected to be 'a'
 type B = If<false, 'a', 'b'> // expected to be 'b'
+
+// 533 Concat
+// #array
+
+type Concat<T extends readonly any[], U extends readonly any[]> = [...T, ...U];
+
+type Result1 = Concat<[1], [2]> // expected to be [1, 2]
+type Result2 = Concat<typeof tuple, typeof tuple> // expected to be [1, 1]
+
+// 898 Includes
+// #array
+
+type Includes<T extends readonly any[], U> = T extends [infer L, ...infer R]
+  ? [U, L] extends [L, U]
+  ? true
+  : Includes<R, U> 
+  : false
+
+type Test_898_1 = Includes<['Kars', 'Esidisi', 'Wamuu', 'Santana'], 'Dio'> // false
+type Test_898_2 = Includes<['Kars', 'Esidisi', 'Wamuu', 'Santana'], 'Kars'> // true
+type Test_898_3 = Includes<[{}], { a: 'A' }>;
+
+// 3057 Push
+// #array
+
+type Push<T extends any[], U> = [...T, U]; 
+
+type Test_3057_1 = Push<[], 1>;
+type Test_3057_2 = Push<[1, 2], '3'>;
+type Test_3057_3 = Push<['1', 2, '3'], boolean>;
+
+
+type Unshift<T extends any[], U> = [U, ...T]; 
+
+type Test_3060_1 = Unshift<[], 1>;
+type Test_3060_2 = Unshift<[1, 2], 0>;
+type Test_3060_3 = Unshift<['1', 2, '3'], boolean>;
+
+// 3312 Parameters
+// #infer #tuple #built-in
+
+type MyParameters<T extends (...args: any[]) => any> = 
+  T extends  (...args: infer R) => any
+  ? R 
+  : [];
+
+const foo = (arg1: string, arg2: number): void => {}
+const bar = (arg1: boolean, arg2: { a: 'A' }): void => {}
+const baz = (): void => {}
+
+type Test_3312_1 = MyParameters<typeof foo>;
+type Test_3312_2 = MyParameters<typeof bar>;
+type Test_3312_3 = MyParameters<typeof baz>;
+
+
+// 2 Get return type
+// #infer #built-in
+
+type MyReturnType<T> = T extends (...args: any[]) => infer R
+  ? R : never
+
+const fn = (v: boolean) => {
+  if (v)
+    return 1
+  else
+    return 2
+}
+
+type Test_2_1 = MyReturnType<typeof fn> // should be "1 | 2"
